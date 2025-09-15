@@ -1,0 +1,23 @@
+package it.aulab.spring_data_project.repositories;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
+
+import it.aulab.spring_data_project.models.Author;
+
+public interface AuthorRepository extends CrudRepository<Author, Long> {
+    List<Author> findByName(String name);
+
+    List<Author> findBySurname(String surname);
+
+    List<Author> findByNameAndSurname(String name, String surname);
+
+    @Query(value = "SELECT * FROM authors a WHERE a.firstname = 'lollo'", nativeQuery = true)
+    List<Author> authorsWithSameName();
+
+    @Query(value = "SELECT a FROM Author a WHERE a.name = 'lollo'")
+    List<Author> authorsWithSameNameNonNative();
+}
