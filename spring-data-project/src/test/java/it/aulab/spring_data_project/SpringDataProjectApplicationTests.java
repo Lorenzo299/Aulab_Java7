@@ -2,15 +2,12 @@ package it.aulab.spring_data_project;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.SpringBootTest;
-
 import it.aulab.spring_data_project.models.Author;
 import it.aulab.spring_data_project.repositories.AuthorRepository;
 
