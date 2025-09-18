@@ -1,5 +1,7 @@
 package it.aulab.spring_data_project.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,7 +20,7 @@ public class Comment {
     private Long id;
 
     @Column(nullable = false, length = 100)
-    private String title;
+    private String email;
     @Column(nullable = false, length = 200)
     private String body;
     @Column(nullable = true, length = 8)
@@ -26,6 +28,7 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
+    @JsonIgnoreProperties({ "comments" })
     private Post post;
 
     public Comment() {
@@ -39,12 +42,12 @@ public class Comment {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
+    public String getEmail() {
+        return email;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getBody() {

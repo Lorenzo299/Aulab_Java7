@@ -3,6 +3,8 @@ package it.aulab.spring_data_project.models;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,6 +15,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "authors")
+
 public class Author {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +29,7 @@ public class Author {
     private String email;
 
     @OneToMany(mappedBy = "author")
+    @JsonIgnoreProperties({ "author" })
     private List<Post> posts = new ArrayList<Post>();
 
     public Author() {
