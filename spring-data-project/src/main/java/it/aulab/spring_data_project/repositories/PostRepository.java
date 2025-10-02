@@ -6,4 +6,6 @@ import it.aulab.spring_data_project.models.Post;
 
 public interface PostRepository extends ListCrudRepository<Post, Long> {
 
+    Post findByTitle(String title);
+
 }

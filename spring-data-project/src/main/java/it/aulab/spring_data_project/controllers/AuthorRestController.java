@@ -11,12 +11,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import it.aulab.spring_data_project.models.Author;
 import it.aulab.spring_data_project.services.AuthorService;
 
 @RestController
 @RequestMapping("/authors")
-public class AuthorController {
+public class AuthorRestController {
 
     @Autowired
     AuthorService authorService;
