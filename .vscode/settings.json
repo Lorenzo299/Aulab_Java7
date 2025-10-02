@@ -10,7 +10,7 @@
             "server": "localhost",
             "port": 3306,
             "driver": "MySQL",
-            "name": "springblogdatabase",
+            "name": "springBlogDatabase",
             "database": "springblogdatabase",
             "username": "root"
         }

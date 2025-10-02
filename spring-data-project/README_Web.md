@@ -7,7 +7,7 @@ UTILE PER SVILUPPARE APPLICAZIONI WEB DI TIPO WEB SERVICES RESTFUL, FA PARTE DI 
 -GESTIRE INPUT E OUTPUT IN FORMATO JSON O XML
 
 ADESSO POSSIAMO COMUNICARE TRA BACKEND E FRONTEND
-
+ 
 
 ARCHITETTURA CLIENT-SERVER: CLIENT(BROWSER) FA RICHIESTE E IL SERVER GLI RISPONDE
 BE E FE PER COMUNICARE HANNO BISOGNO DI SEGUIRE UN PROTOCOLLO, OSSIA DELLE REGOLE PER CUI DUE ENTITA COMUNICANO FRA LORO: ATTRAVERSO IL BROWER CHHIEDIAMO AL SERVER RISORSE DI UN SITO, QUESTO SITO E HOSTATO IN UN SERVER CHE PUO ESSERE SITUATO OVUNQUE; IL PROTOCOLLO E HTTP
@@ -74,7 +74,7 @@ ABBIAMO CREATO U METODO CHE RESTITUISCE UNA LIST DI AUTORI, UTILIZZANDO PERCIO I
 @controller PER IDENTIFICARLA COME BEAN(STEREOTYPE)
 @responsebody indica che il valore restituito deve essere considerato come il corpo della risposta http E NON COME UNA VISTA DA RISOLVERE.
 USIAMO UN METODO FINDALL DELL INTERFACCIA CRUDREPOSITORY, QUESTO PERO RESTITUISCE UN ITERABLE CHE NON E CONVERTIBILE IN UNA LISTA, ALLORA DOVREMO UTILIZZARE UNA NUOVA INTERFACCIA LISTCRUDREPOSITORY CHE HA IL METODO FINDALL, QUESTA E UNA NUOVA INTERFACCIA CHE SPECIALIZZA I REPO PER LE LIST(SOSTITUIRE TUTTI I REPO AFFINCHE ESTENDANO LISTCRUDREPOSITORY)
-
+ 
 
 I CONTROLLER GESTISCONO RICHIESTE CLIENT, COSI CHE E NECESSARIA UNA NUOVA ANNOTATION:
     @RequestMapping(value = "/authors", method = RequestMethod.GET)
@@ -227,8 +227,188 @@ IN QUESTO CASO AVREMO NECESSITA SIA DI SPECIFICARE L ID CHE DI PASSARE UN NUOVO 
 DELETE MOLTO SEMPLICE DOBBIAMO SOLO PASSARE IL PARAMETRO DELL OGGETTO CHE VOGLIAMO ELIMINARE E AGGIUNGERE UN CONTROLLO PER VEDERE SE QUESTO ESISTE O MENO e all interno di questo svincolare tutti i post a lui collegati( oggetti creati tramite una sua relazione) e poi eliminare l oggetto
 
 
+ADESSO DOBBIAMO AGGIUNGERE I SERVICES
 
 
+3 LIVELLI DI ARCHITETTURA:
+-PRESENTAZIONE: INTERFACCIA UTENTE
+-LOGICA DI BUSNESS: DELL APPLICAZIONE MANIPOLAZIONE DATI E LA SUA LOGICA
+-PERSISTENZA DATI: MEMORIZAZZIONE E RECUPERO DEI DATI
+
+A LIVELLO DI LOGICA DI BUSSNES AVREMO I SERVICE: TRAMITE I CONTROLLER IL NOSTRO SERVER RISPONDE ALLE CHIAMATE API, CON I SERVICE POTRA ANCHE RISOLVERE DELLE VISTE
+
+CREO INTERFACCIA SERVICE PER L AUTORE:
+public interface AuthorService {
+
+    List<Author> readAll();  RECUPERO TUTTI AUTORI
+
+    Author read(Long id);  SINGOLO
+
+    List<Author> read(String email); RECUEPERO GLI AUTORI DALL EMAIL
+
+    List<Author> read(String firstname, String lastname); DA. NOME E COGNOME
+
+    Author create(Author author);
+
+    Author update(Long id, Author author);
+
+    void delete(Long id);
+}
+
+PRIMA INTERFACCIA PERCHE I SERVICE ESSENDO IN MEZZO TRA I REPO E I CONTROLLER CREANDO PRIMA INTERFACCIA E EPOI IMPL SI GESTICONO MEGLIO LE FUNZIONALITA: SIA SOSTITUENDO LE VECCHIE O ESTENDENDO LE FUNZ VECCHIE.
+
+QUI ABBIAMO FIRMATO TUTTE LE FUNZIONALITA
+
+CREARE L IMPLEMENTAZIONE E OVERRIDE TUTTI I METODI, FACENDO UN ATTRIBUTO PER LA DEPENDY INJECTION CON REPOSITORY
+
+@Service
+public class AuthorServiceImpl implements AuthorService {
+
+    @Autowired
+    private AuthorRepository authorRepository;
+
+    @Override
+    public Author create(Author author) {
+
+    }
+
+    @Override
+    public void delete(Long id) {
+
+    }
+
+    @Override
+    public Author read(Long id) {
+
+    }
+
+    @Override
+    public List<Author> read(String email) {
+
+    }
+
+    @Override
+    public List<Author> read(String firstname, String lastname) {
+
+    }
+
+    @Override
+    public List<Author> readAll() {
+
+    }
+
+    @Override
+    public Author update(Long id, Author author) {
+
+    }
+
+}
+
+LE LOGICHE DI QUESTE FUNZIONALITA SONO ALL INTERNO DEI CONTROLLER E CHE ABBIAMO FIRMATO NEL REPO
+
+-READALL E UGUALE AL GETALL AUTHORS DEI CONTROLLER
+-READ ID FACCIAMO UN CONTROLLO SULL AUTORE SE ESISTE O NO
+
+-READ EMAIL NON CE L ABBIAMO E VA CREATO NEL REPO 
+    List<Author> findByEmail(String email);
+E POI IMPLEMENTIAMO CON UN CONTROLLO SE QUESTA NON SIA NULL
+
+-STESSO DISCORSO PER NAME E SURNAME, AVENDOLO GIA NEL REPO DEVO SOLO RETORNARE COME TROVO NEL CONTROLLER E AGGIUNGERE IL CONTROLLO
+
+-PER LA CREATE STESSA LOGICA DEL CONTROLLER aggiunge un controllo se l author ha un email 
+
+-PER L UPDATE DOBBIAMO SEMPRE USARE LA LOGICA DEL CONTROLLER CON IL SOLITO CONTROLLO
+
+-PER LA DELETE QUELLO CHE HO NEL CONTROLLER CON IL CONTROLLO SE ESISTE E LOP SVINCOLO DI TUTTI I POSTI SETTANDO UN VALORE NULL NEI POST DA LUI CREATI
+
+@Service
+public class AuthorServiceImpl implements AuthorService {
+
+    @Autowired
+    private AuthorRepository authorRepository;
+
+    @Override
+    public Author create(Author author) {
+        if (author.getEmail() == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        return authorRepository.save(author);
+    }
+
+    @Override
+    public void delete(Long id) {
+        if (authorRepository.existsById(id)) {
+            Author author = authorRepository.findById(id).get();
+            List<Post> authorPosts = author.getPosts();
+            for (Post post : authorPosts) {
+                post.setAuthor(null);
+            }
+            authorRepository.deleteById(id);
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "author not found");
+        }
+    }
+
+    @Override
+    public Author read(Long id) {
+        Optional<Author> optAuthor = authorRepository.findById(id);
+        if (optAuthor.isPresent()) {
+            return optAuthor.get();
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Author id= " + id + " not found");
+        }
+    }
+
+    @Override
+    public List<Author> read(String email) {
+        if (email == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        return authorRepository.findByEmail(email);
+    }
+
+    @Override
+    public List<Author> read(String firstname, String lastname) {
+        if (firstname == null || lastname == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        return authorRepository.findByNameAndSurname(firstname, lastname);
+    }
+
+    @Override
+    public List<Author> readAll() {
+        return authorRepository.findAll();
+    }
+
+    @Override
+    public Author update(Long id, Author author) {
+
+        if (authorRepository.existsById(id)) {
+            author.setId(id);
+            return authorRepository.save(author);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+}
+
+ADESSO ABBIAMO UNA DUPLICAZIONE DI CODICE CON IL CONTROLLER CHE PER LA SUA DEFINIZIONE SERVE SOLO A MAPPARE LE RICHIESTE API, ALLORA NEL CONTROLLER DOBBIAMO UTILIZZARE I METODI IMPLEMENTATI NEL SERVICE:
+-INIETTARE IL SERVICE NEL CONTROLLER
+-INSERIRE I METODI DEI SERVICE NEL CONTROLLER:
+    -NEL GETALLAUTHORS : 
+        return authorService.readAll();
+    -GETAUTHOR:
+        return authorService.read(id);
+    -create:
+        return authorService.create(author);
+    -update:
+        return authorService.update(id, author);
+    -delete:
+        authorService.delete(id);
+CANCELLARE L INJECTION DI REPOSITORY IN QUANTO ABBIAMO TUTTA LA LOGICA NEL SERVICE
+
+PERCIO
+-CONTROLLER: SONO USATI PER INTERCETTARE LE RICHIESTE HTTP DAL CLIENT, DA QUESTE HANNO IL COMPITO DI ELABORLARE E RESTITUIRE LE RISPOSTE APPROPRIATE: INDIRIZZANO PERCIO LE RICHIESTE AI COMPONENTI APPROPRIATI, QUESTI COMUNICANDO CON I SERVICE
+-SERVICE: CONTENGO LA LOGICA DELL APPLICAZIONE OSSIA LE OPERAZIONI CHE L APPLICAZIONE DEVE ESEGUIRE SUI DATI: IMPLEMENTANO LE FUNZIONALITA PRINCIPALI DELL APP. I SERVICES VENGONO CHIAMATI DAI CONTROLLER PER ELEABORARE I DATI.
+        
 
 
 
