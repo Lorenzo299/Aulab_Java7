@@ -5,12 +5,14 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import it.aulab.spring_data_project.models.Comment;
 import it.aulab.spring_data_project.models.Post;
 import it.aulab.spring_data_project.repositories.PostRepository;
 
+@Service
 public class PostServiceImpl implements PostService {
 
     @Autowired
